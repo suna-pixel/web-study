@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>간편 영화 후기</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./main.css" />
+</head>
+
+<body>
+    <!-- Image and text -->
+    <nav class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">
+            <img src="https://images.unsplash.com/photo-1760717135429-519418a7e6da?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNnx8fGVufDB8fHx8fA%3D%3D&fm=jpg&q=60&w=3000"
+                width="30" height="30" class="d-inline-block align-top" alt="">
+            간편 영화 후기
+        </a>
+    </nav>
+
+
+    <div class="container">
+    <!-- 상단 컨테이너 -->
+        <div class="jumbotron" id="jumbotron">
+            <h1 class="display-4">인기/최신 영화에 한마디씩!</h1>
+            <p class="lead">themoviedb라는 아주 훌륭한 무료 영화 데이터베이스 플랫폼 API를 사용하여 영화정보를 가져왔습니다.</p>
+            <hr class="my-4">
+            <p>키 값은 임의로 사관학교에서 생성했지만 언제 막힐지 몰라요! 사용량이 정해져있거든요!</p>
+            <p>따라서 여러분 프로젝트땐, 키를 직접 발급 받아보세요</p>
+            <a class="btn btn-danger btn-lg" href="#" role="button">themoviedb로 키발급 받으러가기</a>
+        </div>
+
+        <!-- 하단 컨테이너 -->
+        <div class="row row-cols-1 row-cols-md-3" id="movie-list">
+            <div class="col mb-4">
+                <div class="card">
+                    <img src="..." class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">Card title</h5>
+                        <button type="button" class="btn btn-success" id="review-button" onclick="review()">리뷰
+                            보기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 팝업창 -->
+    <div class="modal" id="review-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">후기</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <input type="text" class="form-control" id="review" style="width:70%"/>
+                    <button type="button" class="btn btn-primary" onclick="addReview()">후기 쓰기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+    <script>
+        // ajax를 이용한 api
+        let target_id = 0;  //전역변수 선언
+
+        $(document).ready(function() {
+
+            $.ajax({
+                url: "https://api.themoviedb.org/3/movie/popular?api_key=8f668f1e2941e8e1fe2b483c5d4ad7ec&language=en-US&page=1",
+                data: {},
+                type: "GET",
+                success: function(json){
+                    console.log(json)
+                    $("#movie-list").html('')  //이벤트 실행하기 전 초기화
+                    let movie_list = json.results;  
+        //    반복문으로 영화별 컨테이너 생성
+                    for (let i = 0; i < movie_list.length; i++) {
+                        let card = `<div class="col mb-4">
+                <div class="card">
+                    <img src=${"https://image.tmdb.org/t/p/w500"+movie_list[i].poster_path} class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">${movie_list[i].original_title}</h5>
+                        <button type="button" class="btn btn-success" id="review-button" onclick="review(${movie_list[i].id})">리뷰 보기</button>
+                    </div>
+                </div>
+            </div>`
+                        $("#movie-list").append(card)
+
+                    }
+
+                },
+                error: function (err) {
+
+                }
+            })  //서버의 응답: success/error
+        })
+
+
+        function review(id){
+            target_id = id;
+            $(".modal-body").html('')
+
+            $.ajax({
+                url: `http://universeapi.net/review/list?movie_id=${id}`,
+                data: {},
+                type: "GET",
+                success: function(json){
+                    console.log(json)
+
+                    let reviews = json.data;
+                    // $(".modal-body").html('')
+                    for(let i=0; i<reviews.length; i++) {
+                        $(".modal-body").append(`<p>${reviews[i].review}</p>`)
+                    }
+                },
+                error:function(err){
+                //    $(".modal-body").html('')
+                }
+            })  
+
+            
+            $('#review-modal').modal('show')
+        }
+
+        function addReview(){
+            // console.log(target_id)
+            let review = $("#review").val();
+            let review_html = `<p>${review}</p>`
+
+            $.ajax({
+                url: "http://universeapi.net/review/add",
+                data: {
+                    movie_id:target_id,
+                    review:review
+                },
+                type: "POST",
+                success: function(json){
+                    console.log(json)
+                },
+                error: function(){
+                //   console.log("리뷰추가 안됨")  
+                }
+            })
+
+            $(".modal-body").append(review_html)
+            $("#review").val('');
+        }
+    </script>
+
+
+</body>
+
+</html>
